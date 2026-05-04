@@ -240,6 +240,10 @@ require("toggleterm").setup {
   open_mapping = [[<F3>]] -- or { [[<c-\>]], [[<c-¥>]] } if you also use a Japanese keyboard.
 }
 
+for i = 1, 4 do
+  vim.keymap.set('n', '<leader>' .. i, '<cmd>' .. i .. 'ToggleTerm<CR>', { noremap = true, silent = true })
+end
+
 
 vim.api.nvim_create_user_command("Test", function()
   vim.cmd("Neotest output-panel")
