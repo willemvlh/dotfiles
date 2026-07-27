@@ -129,8 +129,7 @@ vim.lsp.config('clangd', {
 })
 
 vim.lsp.enable('ruby_lsp')
-vim.lsp.enable('jdtls')
-
+-- jdtls is configured via ftplugin/java.lua (required for debug support)
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
@@ -262,7 +261,6 @@ vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
 vim.g.copilot_no_tab_map = true
 vim.g.copilot_proxy_strict_ssl = false
 
-
 vim.cmd("runtime macros/matchit.vim")
 
 local group = vim.api.nvim_create_augroup("RubyStuff", { clear = true })
@@ -274,3 +272,39 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.keymap.set('n', '<F2>', ':99TermExec cmd="bundle exec rspec %"<CR>', { noremap = true, silent = true })
   end,
 })
+
+--Debugging
+
+local mason_dap = require("mason-nvim-dap")
+local dap = require("dap")
+local ui = require("dapui")
+local dap_virtual_text = require("nvim-dap-virtual-text")
+
+dap_virtual_text.setup()
+ui.setup()
+
+mason_dap.setup({
+  handlers = {
+    function(config)
+      require("mason-nvim-dap").default_setup(config)
+    end
+  }
+})
+
+-- Auto open/close dapui when debug sessions start/end
+dap.listeners.after.event_initialized["dapui_config"] = function() ui.open() end
+dap.listeners.before.event_terminated["dapui_config"] = function() ui.close() end
+dap.listeners.before.event_exited["dapui_config"] = function() ui.close() end
+
+-- DAP keymaps
+vim.keymap.set('n', '<F5>', dap.continue, { desc = "Debug: Continue" })
+vim.keymap.set('n', '<F3>', dap.step_over, { desc = "Debug: Step Over" })
+vim.keymap.set('n', '<F2>', dap.step_into, { desc = "Debug: Step Into" })
+vim.keymap.set('n', '<F4>', dap.step_out, { desc = "Debug: Step Out" })
+vim.keymap.set('n', '<leader>b', dap.toggle_breakpoint, { desc = "Debug: Toggle Breakpoint" })
+vim.keymap.set('n', '<leader>B', function()
+  dap.set_breakpoint(vim.fn.input('Breakpoint condition: '))
+end, { desc = "Debug: Conditional Breakpoint" })
+vim.keymap.set('n', '<leader>dr', dap.repl.open, { desc = "Debug: Open REPL" })
+vim.keymap.set('n', '<leader>du', ui.toggle, { desc = "Debug: Toggle UI" })
+

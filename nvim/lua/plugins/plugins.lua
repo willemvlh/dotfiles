@@ -10,8 +10,8 @@ return {
   'hrsh7th/nvim-cmp',
   'hrsh7th/cmp-vsnip',
   'hrsh7th/vim-vsnip',
-  'windwp/nvim-autopairs',
-  { 'nvim-tree/nvim-tree.lua', lazy = false, priority = 80 },
+  { 'windwp/nvim-autopairs',   event = 'InsertEnter', opts = {} },
+  { 'nvim-tree/nvim-tree.lua', lazy = false,          priority = 80 },
   "folke/tokyonight.nvim",
   "catppuccin/nvim",
   { "nvim-telescope/telescope.nvim", tag = '0.1.8', requires = { { 'nvim-lua/plenary.nvim' } } },
@@ -24,19 +24,12 @@ return {
   {
     "mfussenegger/nvim-dap",
     dependencies = {
-      "suketa/nvim-dap-ruby"
+      "rcarriga/nvim-dap-ui",
+      "jay-babu/mason-nvim-dap.nvim",
+      "theHamsta/nvim-dap-virtual-text"
     },
-    config = function()
-      require("dap-ruby").setup()
-    end
   },
-   {
-        "igorlfs/nvim-dap-view",
-        ---@module 'dap-view'
-        ---@type dapview.Config
-        opts = {},
-    },
-  { "nvim-treesitter/nvim-treesitter", branch = 'master',                                                  lazy = false, build = ":TSUpdate" },
+  { "nvim-treesitter/nvim-treesitter", branch = 'master', lazy = false, build = ":TSUpdate" },
   {
     "nvim-neotest/neotest",
     dependencies = {
@@ -51,10 +44,9 @@ return {
         adapters = {
           require("neotest-rspec")
         }
-      })
-    end
+      }) end
   },
   { "github/copilot.vim" },
-  {'akinsho/toggleterm.nvim', version = "*", config = true},
-
+  { 'akinsho/toggleterm.nvim',         version = "*",     config = true },
+  { "mfussenegger/nvim-jdtls", dependencies = { "mfussenegger/nvim-dap" } }
 }

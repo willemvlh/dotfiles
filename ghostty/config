@@ -1,0 +1,4 @@
+# Ghostty configuration
+
+gtk-toolbar-style = flat
+#gtk-wide-tabs = false
