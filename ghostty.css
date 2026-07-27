@@ -1,0 +1,13 @@
+tabbar tabbox {
+  margin: 0;
+  padding: 0;
+  min-height: 8px;
+  font-size: 13px;
+}
+
+tabbar tabbox tab {
+  margin: 0;
+  padding: 0;
+  border-right: 1px solid #374151;
+}
+
