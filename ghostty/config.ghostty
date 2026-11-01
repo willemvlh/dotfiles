@@ -1,5 +1,6 @@
 keybind = global:ctrl+backquote=toggle_quick_terminal
-background-opacity = 0.8
+background-opacity = 0.9
 background-blur = true
 gtk-custom-css = ~/.config/ghostty/ghostty.css
-theme = Doom One
+theme = Dracula
+

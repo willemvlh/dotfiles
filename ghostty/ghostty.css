@@ -5,9 +5,22 @@ tabbar tabbox {
   font-size: 13px;
 }
 
+/* Opaque tab bar (Dracula background). Applied to the whole bar, not just the
+   tab row, so its outer padding/edges are filled too. */
+tabbar,
+tabbar .box {
+  background-color: #282a36;
+}
+
 tabbar tabbox tab {
   margin: 0;
   padding: 0;
   border-right: 1px solid #374151;
+  border-radius: 0; /* square tabs */
+}
+
+/* libadwaita also rounds the wrapper around each tab (9px) */
+tabbar tabbox > tabboxchild {
+  border-radius: 0;
 }
 
