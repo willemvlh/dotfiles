@@ -14,7 +14,7 @@ return {
   { 'nvim-tree/nvim-tree.lua', lazy = false,          priority = 80 },
   "folke/tokyonight.nvim",
   "catppuccin/nvim",
-  { "nvim-telescope/telescope.nvim", tag = '0.1.8', requires = { { 'nvim-lua/plenary.nvim' } } },
+  { "nvim-telescope/telescope.nvim", tag = '0.1.8', dependencies = { 'nvim-lua/plenary.nvim' } },
   "nvim-tree/nvim-web-devicons",
   "tpope/vim-endwise",
   "andymass/vim-matchup",
@@ -25,27 +25,12 @@ return {
     "mfussenegger/nvim-dap",
     dependencies = {
       "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio",
       "jay-babu/mason-nvim-dap.nvim",
       "theHamsta/nvim-dap-virtual-text"
     },
   },
   { "nvim-treesitter/nvim-treesitter", branch = 'master', lazy = false, build = ":TSUpdate" },
-  {
-    "nvim-neotest/neotest",
-    dependencies = {
-      "nvim-neotest/nvim-nio",
-      "nvim-lua/plenary.nvim",
-      "antoinemadec/FixCursorHold.nvim",
-      "nvim-treesitter/nvim-treesitter",
-      "olimorris/neotest-rspec"
-    },
-    config = function()
-      require("neotest").setup({
-        adapters = {
-          require("neotest-rspec")
-        }
-      }) end
-  },
   { "github/copilot.vim" },
   { 'akinsho/toggleterm.nvim',         version = "*",     config = true },
   { "mfussenegger/nvim-jdtls", dependencies = { "mfussenegger/nvim-dap" } }

@@ -9,14 +9,27 @@ require('nvim-tree').setup({
     highlight_git = true,
   }
 })
-local null_ls = require("null-ls")
-null_ls.setup({
-  sources = {
-    null_ls.builtins.formatting.rubyfmt,
-  },
-})
+
+-- Transparent variant of tokyonight's lightline palette: drop every background.
+-- Segments drawn as dark text on a coloured block (e.g. the mode) instead use
+-- that colour as the text colour, so they stay readable.
+do
+  local colors = require("tokyonight.colors").setup()
+  local palette = vim.deepcopy(require("lightline.colorscheme.tokyonight"))
+  for _, mode in pairs(palette) do
+    for _, side in pairs(mode) do
+      for i, seg in ipairs(side) do
+        local fg = seg[1] == colors.black and seg[2] or seg[1]
+        -- Full {guifg, guibg, ctermfg, ctermbg, attr} entry, so lightline uses it verbatim
+        side[i] = { fg, "NONE", "NONE", "NONE", seg[1] == colors.black and "bold" or "" }
+      end
+    end
+  end
+  vim.g["lightline#colorscheme#tokyonight_transparent#palette"] = palette
+end
+
 vim.g.lightline = {
-  colorscheme = "tokyonight",
+  colorscheme = "tokyonight_transparent",
   active = {
     left = {
       { "mode",     "paste" },
@@ -30,6 +43,22 @@ vim.g.lightline = {
     left = { { "relativepath", "modified" } },
   }
 }
+require("tokyonight").setup({
+  transparent = true,
+  styles = {
+    sidebars = "transparent", -- nvim-tree, help, terminals, etc.
+    floats = "dark",          -- keep popups (hover, completion) opaque for readability
+  },
+  on_highlights = function(hl)
+    -- Base of the buffer bar; bufferline groups without a bg inherit this
+    hl.TabLineFill = { bg = "NONE" }
+    hl.TabLine = { fg = hl.TabLine.fg, bg = "NONE" }
+    hl.StatusLine = { fg = hl.StatusLine.fg, bg = "NONE" }
+    hl.StatusLineNC = { fg = hl.StatusLineNC.fg, bg = "NONE" }
+    -- Unused variables/imports; tokyonight's default (#414868) is too dark without its bg
+    hl.DiagnosticUnnecessary = { fg = "#6c7590" }
+  end,
+})
 vim.cmd("colorscheme tokyonight-night")
 vim.api.nvim_set_hl(0, "LineNr", { fg = "#a8d2ff" })
 vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "#6090cc" })
@@ -40,13 +69,16 @@ vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = "#333333" })
 vim.api.nvim_set_hl(0, "NvimTreeGitFileIgnoredHL", { fg = "#aaaaaa", italic = true })
 vim.api.nvim_set_hl(0, "NvimTreeGitFileDirtyHL", { fg = "#ddbb44" })
 vim.api.nvim_set_hl(0, "", { bg = "#1e1e1e" })
-vim.api.nvim_set_hl(0, '@function.ruby', { bold = true })
-vim.api.nvim_set_hl(0, '@lsp.typemod.class.declaration.ruby', { bold = true })
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.o.termguicolors = true
 vim.wo.number = true
-vim.o.showmode = false
+-- Statusline hidden by default (toggle with <leader>s). When shown, it's one global
+-- statusline (laststatus=3) so nvim-tree doesn't get its own. showmode is on only
+-- while the statusline is hidden, since lightline displays the mode itself.
+vim.o.laststatus = 0
+vim.o.showmode = true
+vim.opt.fillchars:append({ eob = " " }) -- hide ~ on lines past end of buffer
 vim.o.winborder = "rounded"
 vim.o.autowriteall = true -- This makes sure modified buffers are saved when running an external command
 -- Enable filetype detection, plugins, and indentation
@@ -123,12 +155,13 @@ vim.lsp.config('*', {
   capabilities = capabilities
 })
 
+vim.lsp.enable('gopls')
+
 vim.lsp.config('clangd', {
   capabilities = capabilities,
   cmd = { 'clangd', '--compile-commands-dir=%/..' }
 })
 
-vim.lsp.enable('ruby_lsp')
 -- jdtls is configured via ftplugin/java.lua (required for debug support)
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
@@ -198,21 +231,26 @@ vim.keymap.set('n', '<leader>fs', require('telescope.builtin').live_grep)
 vim.keymap.set('n', '<leader>fh', require('telescope.builtin').help_tags)
 vim.keymap.set('n', '<leader>fm', require('telescope.builtin').man_pages)
 vim.keymap.set('n', '<leader>fw', require('telescope.builtin').grep_string)
-vim.keymap.set('n', '<leader>few', function()
-  require('telescope.builtin').grep_string({ glob_pattern = "!**/spec/**" })
-end)
-vim.keymap.set('n', '<leader>fe', function()
-  require('telescope.builtin').live_grep({ glob_pattern = "!**/spec/**" })
-end)
-vim.keymap.set('n', '<leader>to', ':Neotest output-panel<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>ts', ':Neotest summary<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>tn', 'require("neotest").run.run()<CR>', { noremap = true })
-vim.keymap.set('n', '<leader>tf', 'require("neotest").run.run(vim.fn.expand("%"))<CR>', { noremap = true })
 vim.keymap.set('n', '<leader>l', function()
   vim.o.relativenumber = not vim.o.relativenumber
 end)
+vim.keymap.set('n', '<leader>s', function()
+  local hidden = vim.o.laststatus ~= 0
+  vim.o.laststatus = hidden and 0 or 3
+  vim.o.showmode = hidden
+end, { desc = "Toggle statusline" })
 vim.keymap.set('n', ',', '^', { noremap = true })
 vim.keymap.set('n', '<leader>c', ':bdelete | blast<CR>', { noremap = true })
+vim.keymap.set('n', '<leader>>', function()
+  if (vim.bo.filtype == "NvimTree") then
+    vim.cmd(":vertical resize 80%")
+  end
+end)
+vim.keymap.set('n', '<leader><', function()
+  if (vim.bo.filtype == "NvimTree") then
+    vim.cmd(":vertical resize 80%")
+  end
+end)
 vim.o.ignorecase = true
 vim.o.smartcase = true
 
@@ -224,20 +262,22 @@ require("bufferline").setup {
     numbers = "buffer_id",
     tab_size = 11,
     show_buffer_icons = false
-  }
-}
-
-require('nvim-treesitter.configs').setup {
-  highlight = {
-    enable = function(lang, buf)
-      return lang == "ruby"
+  },
+  -- Transparent: take every default bufferline highlight and drop its background
+  highlights = function(defaults)
+    local hls = {}
+    for name, hl in pairs(defaults.highlights) do
+      hls[name] = vim.tbl_extend("force", hl, { bg = "NONE" })
+      if name:match("separator") then
+        hls[name].fg = "#333333" -- separators are normally drawn in the bg colour; keep them visible
+      end
     end
-  }
+    return hls
+  end,
 }
 
 require("toggleterm").setup {
   size = 15,
-  open_mapping = [[<F3>]] -- or { [[<c-\>]], [[<c-¥>]] } if you also use a Japanese keyboard.
 }
 
 for i = 1, 4 do
@@ -245,12 +285,6 @@ for i = 1, 4 do
 end
 
 
-vim.api.nvim_create_user_command("Test", function()
-  vim.cmd("Neotest output-panel")
-  vim.cmd("Neotest summary")
-  vim.cmd("Neotest run")
-end, {}
-)
 
 --Copilot
 --Use <C-J> to accept copilot suggestions
@@ -262,16 +296,6 @@ vim.g.copilot_no_tab_map = true
 vim.g.copilot_proxy_strict_ssl = false
 
 vim.cmd("runtime macros/matchit.vim")
-
-local group = vim.api.nvim_create_augroup("RubyStuff", { clear = true })
-
-vim.api.nvim_create_autocmd("FileType", {
-  group = group,
-  pattern = "ruby",
-  callback = function()
-    vim.keymap.set('n', '<F2>', ':99TermExec cmd="bundle exec rspec %"<CR>', { noremap = true, silent = true })
-  end,
-})
 
 --Debugging
 
@@ -307,4 +331,4 @@ vim.keymap.set('n', '<leader>B', function()
 end, { desc = "Debug: Conditional Breakpoint" })
 vim.keymap.set('n', '<leader>dr', dap.repl.open, { desc = "Debug: Open REPL" })
 vim.keymap.set('n', '<leader>du', ui.toggle, { desc = "Debug: Toggle UI" })
-
+vim.keymap.set('n', '<leader>dq', dap.terminate, { desc = "Debug: Terminate" })
