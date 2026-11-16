@@ -64,11 +64,11 @@ vim.api.nvim_set_hl(0, "LineNr", { fg = "#a8d2ff" })
 vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "#6090cc" })
 vim.api.nvim_set_hl(0, "LineNrBelow", { fg = "#4070bb" })
 vim.api.nvim_set_hl(0, "CursorLine", { bg = "#1e1e1e" })
+vim.api.nvim_set_hl(0, "Visual", { bg = "#3d59a1", bold = true })
 vim.api.nvim_set_hl(0, "Comment", { fg = "#879999", italic = true })
 vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = "#333333" })
 vim.api.nvim_set_hl(0, "NvimTreeGitFileIgnoredHL", { fg = "#aaaaaa", italic = true })
 vim.api.nvim_set_hl(0, "NvimTreeGitFileDirtyHL", { fg = "#ddbb44" })
-vim.api.nvim_set_hl(0, "", { bg = "#1e1e1e" })
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.o.termguicolors = true
